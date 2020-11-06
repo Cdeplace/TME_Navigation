@@ -8,6 +8,8 @@ import sys
 import numpy as np
 import math
 
+import time
+
 #--------------------------------------
 # Position of the goal:
 goalx = 300
@@ -20,8 +22,7 @@ choice = -1
 choice_tm1 = -1
 tLastChoice = 0
 rew = 0
-global poz_list
-poz_list = 0
+
 i2name=['wallFollower','radarGuidance']
 
 # Parameters of State building:
@@ -30,34 +31,28 @@ th_neglectedWall = 35
 # threshold to consider that we are too close to a wall
 # and a punishment should be delivered
 th_obstacleTooClose = 13
+
 # angular limits used to define states
 angleLMin = 0
 angleLMax = 55
 
 angleFMin=56
 angleFMax=143
-#alpha=0.3
-#beta=12
-#gamma=0.9
 
-alpha=0.4
-beta=4
-gamma=0.95
 angleRMin=144
 angleRMax=199
+
 # Q-learning related stuff:
 # definition of states at time t and t-1
 S_t = ''
 S_tm1 = ''
-cpt = 0
-poz_list = []
-#Writing the Q_Table
-import pandas as pd
-
-def saveQ_Table(trial):
-  df = pd.DataFrame(q_table)
-  df.to_csv("log/Q"+str(trial)+".csv")
-
+#dictionnaire des couples états action et leurs valeurs
+Qdict = {}
+# Q a une liste de couples (a, valeur)
+alpha = 0.4
+beta =4
+gamma = 0.95
+cpt = 200
 
 #--------------------------------------
 # the function that selects which controller (radarGuidance or wallFollower) to use
@@ -69,22 +64,23 @@ def strategyGating(arbitrationMethod,verbose=True):
   global tLastChoice
   global rew
   global cpt
+  choice_tm1 = choice
   # The chosen gating strategy is to be coded here:
   #------------------------------------------------
   if arbitrationMethod=='random':
     choice = random.randrange(2)
   #------------------------------------------------
   elif arbitrationMethod=='randomPersist':
-    if(cpt == 0):
-        choice = random.randrange(2)
-        tLastChoice = choice
-        cpt = 50
+    if (cpt == 0):
+      choice = random.randrange(2)
+      tLastChoice = choice
+      cpt = 200
+      print("New choice : ",choice)
     else:
       cpt = cpt - 1
       choice = tLastChoice
-  #------------------------------------------------
-  elif arbitrationMethod=='qlearning':
-    print('Q-Learning selection : to be implemented')
+
+
   #------------------------------------------------
   else:
     print(arbitrationMethod+' unknown.')
@@ -125,49 +121,56 @@ def buildStateFromSensors(laserRanges,radar,dist2goal):
 
   return S
 
-
-
 #--------------------------------------
-def main(execution_n):
-  global positions
-  global poz_list
+def main():
   global S_t
   global S_tm1
   global rew
-  cpt = 200
+
   settings = Settings('worlds/entonnoir.xml')
+
   env_map = settings.map()
   robot = settings.robot()
+
   d = Display(env_map, robot)
-  method = 'qlearning'
-  # experiment related stuff
+
+  method = 'randomPersist'
   startT = time.time()
   trial = 0
   nbTrials = 40
   trialDuration = np.zeros((nbTrials))
-  choice = random.randrange(0,2)
+
+  file = open("Qres", "w")
+  filecontent = ""
   i = 0
-  position_file = ""
-  update_file = 0
-  file = open("log/positions#"+str(execution_n)+".txt","w")
+
+  updateNBR = 0
+
   while trial<nbTrials:
-    rew = 0
+    if updateNBR == 0 :
+      filecontent += "Trial "+str(trial) + "\n"
+    updateNBR += 1
+
+
+
     # update the display
     #-------------------------------------
     d.update()
     # get position data from the simulation
     #-------------------------------------
     pos = robot.get_pos()
-    if(update_file == 0):
-      position_file += "T : " + str(trial) + "\n"
 
-    update_file = update_file + 1
+    if updateNBR%100 == 0 :
+      # sauve la position toutes les secondes
+      filecontent += str(pos.x()) + " " + str(pos.y()) + "\n"
 
-    if(update_file%100 == 0):
-      position_file = position_file + str(pos.x()) + "," + str(pos.y()) + "\n"
+    # print("##########\nStep "+str(i)+" robot pos: x = "+str(int(pos.x()))+" y = "+str(int(pos.y()))+" theta = "+str(int(pos.theta()/math.pi*180.)))
+
     # has the robot found the reward ?
     #------------------------------------
     dist2goal = math.sqrt((pos.x()-goalx)**2+(pos.y()-goaly)**2)
+
+    rew = 0
     # if so, teleport it to initial position, store trial duration, set reward to 1:
     if (dist2goal<20): # 30
       print('***** REWARD REACHED *****')
@@ -181,7 +184,11 @@ def main(execution_n):
       print("Trial "+str(trial)+" duration:"+str(trialDuration[trial]))
       trial +=1
       rew = 1
-      update_file = 0
+
+
+      filecontent += str(Qdict) + "\n"
+      updateNBR = 0
+
     # get the sensor inputs:
     #------------------------------------
     lasers = robot.get_laser_scanners()[0].get_lasers()
@@ -205,6 +212,9 @@ def main(execution_n):
     #------------------------------------
     S_tm1 = S_t
     S_t = buildStateFromSensors(laserRanges,radar, dist2goal)
+
+    #------------------------------------
+    strategyGating(method,verbose=False)
     if choice==0:
       v = wallFollower(laserRanges,verbose=False)
     else:
@@ -213,50 +223,18 @@ def main(execution_n):
     i+=1
     robot.move(v[0], v[1], env_map)
     time.sleep(0.01)
-    if(S_tm1 != ""):
-      delta = rew + gamma * max(q_table[state_mapping.index(S_t)]) - q_table[state_mapping.index(S_tm1), choice]
-      q_table[state_mapping.index(S_tm1), choice] = q_table[state_mapping.index(S_tm1), choice] + alpha * delta
-      if(cpt == 0 or S_tm1 != S_t or rew != 0):
-        choice = random.choices([0,1],softmax(q_table[state_mapping.index(S_t)]))[0]
-        #n = input("Enter to continue ... ")
-        #print("[STATE]> ",S_tm1," : ",q_table[state_mapping.index(S_t)])
-        #print("[ACTION]> ",choice)
-        #print("[REWARD]> ",rew)
-        #print("[NEW STATE]> ",S_tm1 != S_t)
-        cpt = 200
-      else:
-        cpt = cpt - 1
-
 
   # When the experiment is over:
-  file.write(position_file)
-  np.savetxt('log/'+str(startT)+'-TrialDurations-'+method+'.txt',trialDuration)
-
+  file.write(filecontent)
+  np.savetxt('log/'+str(startT)+'-TrialDurations-RANDOM'+method+'.txt',trialDuration)
+  print(np.percentile(trialDuration, 50))
+  print(np.percentile(trialDuration, 25))
+  print(np.percentile(trialDuration, 75))
 #--------------------------------------
-state_mapping = []
-q_table = np.random.random((2,2))
-def construct_dict():
-  global state_mapping
-  global q_table
-  if(len(state_mapping)==0):
-    for a in range(0,2):
-      for b in range(0,2):
-        for i in range(0,2):
-          for j in range(0,8):
-            for k in range(0,3):
-              state_mapping.append(str(a)+str(b)+str(i)+str(j)+str(k))
-  q_table = np.zeros((len(state_mapping),2))
-
-
-def softmax(x):
-  return np.exp(beta*x) / np.sum(np.exp(beta*x), axis=0)
 
 if __name__ == '__main__':
-  global positions
-  choice = 0
-  for i in range(0,10):
-    construct_dict()
-    random.seed()
-    main(i)
-    saveQ_Table(i)
+  random.seed()
+  main()
+
+
 
