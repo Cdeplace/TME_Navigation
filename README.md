@@ -87,7 +87,19 @@ On a au début de l'apprentissage :
 ![Performance](points_debut.png)
 
 
-Et comme on peut le voire les points sont répartis autour de dans la cuvette sans vraiment de logique étant donné que l'agent alterne les deux politiques plus ou moins aléatoirement dans cette phase d'apprentissage.
+Et comme on peut le voire les points sont répartis autour de dans l'entonnoir sans vraiment de logique étant donné que l'agent alterne les deux politiques plus ou moins aléatoirement dans cette phase d'apprentissage.
+
+On constate néanmoins que dans l'entoinnoir la densité de points est nettement plus grande ce qui correspond certainement a toute les fois ou l'agent a utilisé la politique radar dans l'entonnoir.
+
+
+Et a la fin de l'apprentissage on a : 
+
+![Performance](hist_fin.png)
+
+![Performance](map_fin.png)
+
+![Performance](points_fin.png)
+
 
 
 #### Analyse de certaines entrées de la Q-Table
