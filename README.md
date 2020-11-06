@@ -100,7 +100,7 @@ Et a la fin de l'apprentissage on a :
 
 ![Performance](points_fin.png)
 
-
+La densité est moins concentrée au fond de l'entonnoir ce qui indique que l'agent arrive désormais a le contournerce qui est logique étant donné qu'il a appris a associer la politique du wallfollowing a ce cas.
 
 #### Analyse de certaines entrées de la Q-Table
 - 00002 : Pas d'obstacle et objectif en vue \\
