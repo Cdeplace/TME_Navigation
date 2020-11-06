@@ -43,21 +43,21 @@ De la même façon, la stratégie de suivi de mur va soit faire tourner le ro
 
 ### Aparté sur certains choix de conception : 
 Avant de commencer a détailler les résultats obtenus je tiens a revenir sur quelques choix de conception afin de dissiper toute ambiguité quant a l'efficacité des méthodes que l'on va critiquer dans la suite : 
-- D'abord, mon code fait la supposition que les états sont discrets mais que en plus ils sont tous énumérables, ainsi la Q-Table est construite au début de l'exécution et est mise a jour par la suite.
-- Mon code suppose également que le simulateur tourne a un mouvement par 0.01 secondes.
+- D'abord, notre code fait la supposition que les états sont discrets mais que, en plus ils sont tous énumérables, ainsi la Q-Table est construite au début de l'exécution et est mise a jour par la suite.
+- Notre code suppose également que le simulateur tourne à un mouvement par 0.01 secondes.
 ### Analyse de l'approche benchmark "random-persist" : 
-En analysant les résultats donnés l'approche randomPersiste un constat important est a faire :
-L'une des stratégies optimale du robot est de faire un radarGating, puis un wallFollowing et enfin un radarGating pendant chacun 2 sec, le choix du nombre de secondes durant laquelle faire persister l'action est donc biaisé en faveur de cette approche car il lui permet avec une probabilité de 1/8 de générer une politique optimale, un autre choix de durée inférieure conduit a une dégradation significative des résultats.
-Ainsi on obtient sur pour une exécution donnée : 
+En analysant les résultats donnés pour l'approche randomPersiste, un constat important est a faire :
+L'une des stratégies optimale du robot est de faire un radarGating, puis un wallFollowing et enfin un radarGating pendant chacun 2 sec, le choix du nombre de secondes durant laquelle faire persister l'action est donc biaisée en faveur de cette approche car il lui permet avec une probabilité de 1/8 de générer une politique optimale, un autre choix de durée inférieure conduit a une dégradation significative des résultats.
+Ainsi on obtient pour une exécution donnée : 
 - mediane : 15.773118734359741s 
 - premier quartile : 11.594132959842682s 
 - troisième quartile : 27.77677470445633s
 
-On note cependant que le minimum qui correspond au temps pris par un robot qui adopte la politique précédente est atteint, cette politique est même suivi deux fois durant cette éxécution et elle donne dans les 8.7s de temps d'éxécution pour le meilleur cas.
+On note cependant que le minimum qui correspond au temps pris par un robot qui adopte la politique précédente est atteint, cette politique est même suivie deux fois durant cette éxécution et elle donne environs 8.7s de temps d'éxécution pour le meilleur cas.
 ### Analyse de l'approche obtenu en utilisant une Q-Table : 
-D'abord le premier constat a faire c'est que le temps de délibération pris par l'agent n'a pas d'influence sur les résultats étant donné qu'il est extrêmement court, ensuite, la formalisation du problème fait emerger durant l'apprentissage plusieurs comportement qui entravent l'optimisation de la fonction objectif : le temps.
-- D'abord, il arrive que le mécanisme de changement obligatoire de choix provoque des mouvements par a coups, quand ces mouvement se produisent au fond de l'entonnoir ça conduit le robot a des collisions quelque soit la stratégie qu'il prend.
-- Ensuite, il est a noter que la fonction récompense ne prend pas en compte la fonction objectif, ainsi elle a été défini arbitrairement pour éviter les collisions ce qui est sensé permettre d'atteindre la fin plus rapidement mais en pratique rien ne pénalise un robot qui passerait son temps a simplement explorer en évitant l'entonnoir, heureusement grâce au mécanisme d'exploration du softmax cela ne se produit pas.
+D'abord le premier constat à faire c'est que le temps de délibération pris par l'agent n'a pas d'influence sur les résultats étant donné qu'il est extrêmement court, ensuite, la formalisation du problème fait émerger durant l'apprentissage plusieurs comportement qui entravent l'optimisation de la fonction objectif : le temps.
+- D'abord, il arrive que le mécanisme de changement obligatoire de choix provoque des mouvements par à-coups, quand ces mouvement se produisent au fond de l'entonnoir cela conduit le robot à des collisions quelque soit la stratégie qu'il prend.
+- Ensuite, il est à noter que la fonction récompense ne prend pas en compte la fonction objectif, ainsi elle a été défini arbitrairement pour éviter les collisions ce qui est sensé permettre d'atteindre la fin plus rapidement mais en pratique rien ne pénalise un robot qui passerait son temps à simplement explorer en évitant l'entonnoir, heureusement grâce au mécanisme d'exploration du softmax cela ne se produit pas.
 
 **A présent Quid des performances ?**
 Au début on obtient les performances cumulées suivantes (trois premiers quartiles) : 
@@ -66,7 +66,7 @@ Au début on obtient les performances cumulées suivantes (trois premiers quarti
 - 77.76033812761307 soit une moyenne de 19.25  
 
 
-Je suis assez fiére de ce résultat car il montre bien que au début l'approche est relativement similaire a une approche purement aléatoire.
+Nous sommes assez fiers de ce résultat car il montre bien qu'au début l'approche est relativement similaire àune approche purement aléatoire.
 
 
 - 59.12012094259262 qui donne une moyenne de 14.75  
@@ -74,15 +74,15 @@ Je suis assez fiére de ce résultat car il montre bien que au début l'approche
 - 69.33094066381454 donc une moyenne de 17.25  
 
 
-Et donc on constate une amélioration sur les 3 mesures mais également et surtout une baisse significative de la variance.
+Et donc on constate une amélioration sur les 3 mesures mais également, et surtout, une baisse significative de la variance.
 A noter également que cet agent se base sur une description de son environnement qui est généralisable on s'attend donc a ce que cet agent s'adapte bien mieux a d'autres environnements. \\
 
 ![Performance](Performance.png)
 
 
-La courbe en revanche est beaucoup moins expressive, on voit bien que les performances s'améliore globalement a la fin de l'apprentissage mais c'est trés bruité, on note cependant que la remarque qu'on a faite sur la fonction récompense se voit bien expérimentalement dans la mesure ou les "outlier points" de la courbe correspondent a des itérations ou l'agent a fait des tours dans le vide. \\
+La courbe en revanche est beaucoup moins expressive, on voit bien que les performances s'améliore globalement à la fin de l'apprentissage mais cela reste trés bruité, on note cependant que la remarque qu'on a faite sur la fonction récompense se voit bien expérimentalement dans la mesure ou les "outlier points" de la courbe correspondent à des itérations ou l'agent a fait des tours dans le vide. \\
 
-Intéressons nous a présent au différentes heatmap, nuage de points et histogramme 2D.
+Intéressons nous à présent au différentes heatmap, nuage de points et histogramme 2D.
 
 On a au début de l'apprentissage : 
 
@@ -93,9 +93,9 @@ On a au début de l'apprentissage :
 ![Performance](points_debut.png)
 
 
-Et comme on peut le voire les points sont répartis autour de dans l'entonnoir sans vraiment de logique étant donné que l'agent alterne les deux politiques plus ou moins aléatoirement dans cette phase d'apprentissage.
+Et comme on peut le voire les points sont répartis autour de  l'entonnoir sans vraiment de logique étant donné que l'agent alterne les deux politiques plus ou moins aléatoirement dans cette phase d'apprentissage.
 
-On constate néanmoins que dans l'entoinnoir la densité de points est nettement plus grande ce qui correspond certainement a toute les fois ou l'agent a utilisé la politique radar dans l'entonnoir.
+On constate néanmoins que dans l'entonnoir, la densité de points est nettement plus grande ce qui correspond certainement à toute les fois ou l'agent a utilisé la politique radar dans l'entonnoir.
 
 
 Et a la fin de l'apprentissage on a : 
@@ -106,20 +106,20 @@ Et a la fin de l'apprentissage on a :
 
 ![Performance](points_fin.png)
 
-La densité est moins concentrée au fond de l'entonnoir ce qui indique que l'agent arrive désormais a le contournerce qui est logique étant donné qu'il a appris a associer la politique du wallfollowing a ce cas.
+La densité est moins concentrée au fond de l'entonnoir ce qui indique que l'agent arrive désormais a le contourner ce qui est logique étant donné qu'il a appris a associer la politique du wallfollowing à ce cas.
 
 #### Analyse de certaines entrées de la Q-Table
 - 00002 : Pas d'obstacle et objectif en vue \\
 Q(00002, Radar) = 0.095 \\
 Q(00002, WallFollowing) = -0.222 \\
-Donc la en pratique ça veut dire que si le robot ne voit pas d'obstacle il se dirige vers la récompense si il la voit.\\
+Donc la en pratique ça veut dire que si le robot ne voit pas d'obstacle il se dirige vers la récompense s'il la voit.\\
 
 - 00072 : Pas de vision sur l'objet \\
 Q(00072, Radar) = -0.082 \\ 
 Q(00072, WallFollowing) = 0.055 \\
-Pas vraiment de différence mais a priori le wall following est priorisé car il a certainement du permettre au robot d'éviter les récompense négatives quand il était bloqué dans l'entonnoir. \\
+Pas vraiment de différence mais a priori le wall following est priorisé car il a certainement dû permettre au robot d'éviter les récompenses négatives quand il était bloqué dans l'entonnoir. \\
 
-- Ces deux états représente le cas ou il y'a énormement d'obstacles en vu et a priori il utilise la politique du radar ce qui n'est pas logique, mais en réalité ça a certainement du lui servir quand il était au bord de l'entonnoir. \\
+- Ces deux états représentent le cas ou il y'a énormement d'obstacles en vu et à priori il utilise la politique du radar ce qui n'est pas logique, mais en réalité cela a certainement du lui servir quand il était au bord de l'entonnoir. \\
 Q(11101, Radar) = -1.255 \\
 Q(11101, WallFollowing) = -2.025 \\
 Q(11171, Radar) = -0.247 \\
