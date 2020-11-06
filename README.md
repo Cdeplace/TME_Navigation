@@ -72,7 +72,24 @@ Et donc on constate une amélioration sur les 3 mesures mais également et surto
 A noter également que cet agent se base sur une description de son environnement qui est généralisable on s'attend donc a ce que cet agent s'adapte bien mieux a d'autres environnements. \\
 
 ![Performance](Performance.png)
+
+
 La courbe en revanche est beaucoup moins expressive, on voit bien que les performances s'améliore globalement a la fin de l'apprentissage mais c'est trés bruité, on note cependant que la remarque qu'on a faite sur la fonction récompense se voit bien expérimentalement dans la mesure ou les "outlier points" de la courbe correspondent a des itérations ou l'agent a fait des tours dans le vide. \\
+
+Intéressons nous a présent au différentes heatmap, nuage de points et histogramme 2D.
+
+On a au début de l'apprentissage : 
+
+![Performance](hist_debut.png)
+
+![Performance](map_debut.png)
+
+![Performance](points_debut.png)
+
+
+Et comme on peut le voire les points sont répartis autour de dans la cuvette sans vraiment de logique étant donné que l'agent alterne les deux politiques plus ou moins aléatoirement dans cette phase d'apprentissage.
+
+
 #### Analyse de certaines entrées de la Q-Table
 - 00002 : Pas d'obstacle et objectif en vue \\
 Q(00002, Radar) = 0.095 \\
@@ -85,7 +102,7 @@ Q(00072, WallFollowing) = 0.055 \\
 Pas vraiment de différence mais a priori le wall following est priorisé car il a certainement du permettre au robot d'éviter les récompense négatives quand il était bloqué dans l'entonnoir. \\
 
 - Ces deux états représente le cas ou il y'a énormement d'obstacles en vu et a priori il utilise la politique du radar ce qui n'est pas logique, mais en réalité ça a certainement du lui servir quand il était au bord de l'entonnoir. \\
-Q(11101, 0) = -1.255 \\
-Q(11101, 1) = -2.025 \\
-Q(11171, 0) = -0.247 \\
-Q(11171, 1) = -2.395 \\
+Q(11101, Radar) = -1.255 \\
+Q(11101, WallFollowing) = -2.025 \\
+Q(11171, Radar) = -0.247 \\
+Q(11171, WallFollowing) = -2.395 \\
