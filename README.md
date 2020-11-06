@@ -1,4 +1,4 @@
-# TME-NavigationStrategies
+﻿# TME-NavigationStrategies
 
 **IAR - 2020 : le TME est à me rendre à la fin de la 2e séance, à 13h au plus tard !**
 
@@ -20,14 +20,6 @@ Deux stratégies de navigation sont pré-programmées :
 
 Elles sont testables de manière isolée en lançant ```python wallFollower.py``` et ```python radarGuidance.py```. La coordination des deux stratégies est à coder dans ```strategyGating.py```, qui contient déjà le code permettant de lancer la simulation, de récupérer les données des senseurs, de les transformer en un identifiant d'état (voir plus loin), de téléporter le robot lorsqu'il arrive au but (et de le récompenser), de le punir lorsqu'il approche trop d'un mur, et de répéter les opérations jusqu'à l'obtention de 40 récompenses.
 
-Le codage proprement-dit de ce TME correspond à, maximum, 40 lignes de python. Il faut faire du code propre et qui marche **mais** ça n'est pas le cœur du travail : il s'agit surtout d'essayer d'avoir une approche scientifique par rapport à la question posée. A savoir : mesurer les phénomènes avec, autant que possible, suffisament de répétitions pour en extraire la tendance générale et la dispersion autour de cette tendance, les quantifier afin de pouvoir effectuer des comparaisons, représenter les données obtenues de manière lisible, analyser et commenter ces résultats.
-
-## Informations techniques
-
-Vous allez devoir ajouter du code dans la fonction ```strategyGating``` du fichier ```strategyGating.py``` pour coder les méthodes d'arbitrage proposées en exercice, et aussi probablement du code pour enregistrer des données en fin d'expérience, à la fin de la fonction ```main``` de ce même fichier. Chaque méthode d'abitrage doit, au final, indiquer le choix de l'une ou l'autre des stratégies de navigation en affectant la variable ```choice``` avec ```0``` (activation du suivi de mur) ou ```1``` (activation de l'approche de balise).
-
-Lorsqu'une expérience est menée à terme (jusqu'à atteindre ```nbTrials```), la durée de chaque essai est enregistrée dans un fichier de la forme ```log/time-TrialDuration-method.txt ``` (pensez à créer un répertoire ```log/```).
-
 ## Description du problème
 
 ![Arène](entonnoir2.png)
@@ -45,54 +37,53 @@ Le robot démarre toujours la simulation à la position (300,35).
 L’obstacle en forme de U fait qu’un robot utilisant la stratégie d’approche de balise seule va y rester coincé.
 De la même façon, la stratégie de suivi de mur va soit faire tourner le robot autour de l’arène, soit autour de l’obstacle, sans lui permettre d’atteindre le but. Il va donc être nécessaire de coordonner l’usage de ces deux stratégies afin de résoudre la tâche dans un temps raisonnable.
 
-```strategyGating.py``` est conçu pour que, par défaut, lorsque le robot atteint le but, il soit téléporté à son point de départ. Cette téléportation marque la fin d’un « essai » (trial), le programme s’arrête de lui-même lorsque ce nombre d’essais atteint la valeur nbTrials (40), que vous pouvez donc modifier selon vos besoins. Chaque fois que le robot atteint le but la variable de récompense ```rew``` passe à 1 et chaque fois qu’il percute un mur, elle passe à -1. **C’est à la méthode d’arbitrage (que vous allez programmer) de remettre cette valeur à 0 lorsque l’information a été traitée.**
+```strategyGating.py``` est conçu pour que, par défaut, lorsque le robot atteint le but, il soit téléporté à son point de départ. Cette téléportation marque la fin d’un « essai » (trial), le programme s’arrête de lui-même lorsque ce nombre d’essais atteint la valeur nbTrials (40), que vous pouvez donc modifier selon vos besoins. Chaque fois que le robot atteint le but la variable de récompense ```rew``` passe à 1 et chaque fois qu’il percute un mur, elle passe à -1. **C’est à la méthode d’arbitrage (que l'on va programmer) de remettre cette valeur à 0 lorsque l’information a été traitée.**
 
-## Exercices
+## Résultats d'expérimentation
 
-Prévoyez de m’envoyer par mail à la fin du TME votre code de ```strategyGating.py```, les fichiers de log contenant les informations demandées (durées des essais, Q valeurs), ainsi qu'un pdf de vos réponses aux questions, en me rappelant la composition de votre binôme.
+### Aparté sur certains choix de conception : 
+Avant de commencer a détailler les résultats obtenus je tiens a revenir sur quelques choix de conception afin de dissiper toute ambiguité quant a l'efficacité des méthodes que l'on va critiquer dans la suite : 
+- D'abord, mon code fait la supposition que les états sont discrets mais que en plus ils sont tous énumérables, ainsi la Q-Table est construite au début de l'exécution et est mise a jour par la suite.
+- Mon code suppose également que le simulateur tourne a un mouvement par 0.01 secondes.
+### Analyse de l'approche benchmark "random-persist" : 
+En analysant les résultats donnés l'approche randomPersiste un constat important est a faire :
+L'une des stratégies optimale du robot est de faire un radarGating, puis un wallFollowing et enfin un radarGating pendant chacun 2 sec, le choix du nombre de secondes durant laquelle faire persister l'action est donc biaisé en faveur de cette approche car il lui permet avec une probabilité de 1/8 de générer une politique optimale, un autre choix de durée inférieure conduit a une dégradation significative des résultats.
+Ainsi on obtient sur pour une exécution donnée : 
+- mediane : 15.773118734359741s 
+- premier quartile : 11.594132959842682s 
+- troisième quartile : 27.77677470445633s
 
-1. Vous pouvez constater en lançant un arbitrage de type ```random``` qu’un choix uniforme à chaque pas de temps de l’une des deux stratégies n’a pratiquement aucune chance de sortir le robot du cul-de-sac. Ecrivez une première méthode d’arbitrage ```randomPersist``` choisissant l’une des deux stratégies avec la même probabilité, mais persistant dans son choix pendant deux secondes. Cette stabilité accrue dans les choix devrait permettre au robot d’avoir une réelle chance de sortir du cul-de-sac.
+On note cependant que le minimum qui correspond au temps pris par un robot qui adopte la politique précédente est atteint, cette politique est même suivi deux fois durant cette éxécution et elle donne dans les 8.7s de temps d'éxécution pour le meilleur cas.
+### Analyse de l'approche obtenu en utilisant une Q-Table : 
+D'abord le premier constat a faire c'est que le temps de délibération pris par l'agent n'a pas d'influence sur les résultats étant donné qu'il est extrêmement court, ensuite, la formalisation du problème fait emerger durant l'apprentissage plusieurs comportement qui entravent l'optimisation de la fonction objectif : le temps.
+- D'abord, il arrive que le mécanisme de changement obligatoire de choix provoque des mouvements par a coups, quand ces mouvement se produisent au fond de l'entonnoir ça conduit le robot a des collisions quelque soit la stratégie qu'il prend.
+- Ensuite, il est a noter que la fonction récompense ne prend pas en compte la fonction objectif, ainsi elle a été défini arbitrairement pour éviter les collisions ce qui est sensé permettre d'atteindre la fin plus rapidement mais en pratique rien ne pénalise un robot qui passerait son temps a simplement explorer en évitant l'entonnoir, heureusement grâce au mécanisme d'exploration du softmax cela ne se produit pas.
 
-2. Effectuez 20 essais avec cette nouvelle stratégie, gardez de côté le fichier ```XXX-TrialDurations-YYY``` qui contient le temps nécessaire à chaque essai pour atteindre le but. Calculez la médiane, les premier et troisième quartiles de ces temps. Ces données vont nous servir de référence: toute méthode *intelligente* devra essayer de faire mieux que cette approche aveugle. *Vous pouvez, pour cela, utiliser la fonction « percentile » de numpy.*
+**A présent Quid des performances ?**
+Au début on obtient les performances cumulées suivantes : 
+63.04927521944046 soit une moyenne de 15.7
+65.91398525238037 soit une moyenne de 16.2
+77.76033812761307 soit une moyenne de 19.25
+Je suis assez fiére de ce résultat car il montre bien que au début l'approche est relativement similaire a une approche purement aléatoire.
+59.12012094259262 qui donne une moyenne de 14.75
+62.146416664123535 soit une moyenne de 15.5
+69.33094066381454 donc une moyenne de 17.25
+Et donc on constate une amélioration sur les 3 mesures mais également et surtout une baisse significative de la variance.
+A noter également que cet agent se base sur une description de son environnement qui est généralisable on s'attend donc a ce que cet agent s'adapte bien mieux a d'autres environnements.
+La courbe en revanche est beaucoup moins expressive, on voit bien que les performances s'améliore globalement a la fin de l'apprentissage mais c'est trés bruité, on note cependant que la remarque qu'on a faite sur la fonction récompense se voit bien expérimentalement dans la mesure ou les "outlier points" de la courbe correspondent a des itérations ou l'agent a fait des tours dans le vide.
+#### Analyse de certaines entrées de la Q-Table
+- 00002 : Pas d'obstacle et objectif en vue 
+Q(00002, Radar) = 0.095
+Q(00002, WallFollowing) = -0.222
+Donc la en pratique ça veut dire que si le robot ne voit pas d'obstacle il se dirige vers la récompense si il la voit.
 
-**Pro-tip :** Pendant que ça tourne, plutôt que de vous laisser hypnotiser par le robot qui bouge, attaquez la question suivante : vous avez un temps limité...
+- 00072 : Pas de vision sur l'objet
+Q(00072, Radar) = -0.082
+Q(00072, WallFollowing) = 0.055
+Pas vraiment de différence mais a priori le wall following est priorisé car il a certainement du permettre au robot d'éviter les récompense négatives quand il était bloqué dans l'entonnoir.
 
-3. Implémentez une méthode d'arbitrage ```qlearning``` similaire à celle utilisée par (Dollé et al., 2010) : elle utilise un algorithme de Q Learning pour apprendre, essai après essai, quelle est la meilleure stratégie à choisir en fonction de l’état du monde.
-
-![Définition des états](FigStates.png)
-
-**Définition des états :** On travaille ici avec une approche tabulaire, les états sont discrets, ils ont un identifiant qui est une chaîne de caractère construite de la manière suivante : les trois premiers caractères (0 ou 1) indiquent s'il y a un mur à proximité à gauche, au milieu, à droite ; le caractère suivant, entre 0 et 7, indique la direction de la balise ; le dernier (0, 1 ou 2) indique si la balise est proche (<125 pixels), moyennement éloignée (<250 pixels), ou lointaine (>= 250 pixels). Ces états sont déjà construits (par la fonction ```buildStateFromSensors```), l'état courant est lisible dans ```S_t```, l'état précédent dans ```S_tm1```.
-
-**Q-Learning :** Il vous faut créer et mettre à jour la valeur Q(s,a) des couples (état,action) rencontrés, et l'utiliser chaque fois que nécessaire pour choisir la prochaine stratégie de navigation active. Pour cela, il faut calculer à chaque pas de temps l'erreur de prédiction de récompense :
-
-![delta](RPE.png)
-
-Puis mettre à jour la Q-valeur correspondant à la dernière action effectuée :
-
-![Q update](QUpdate.png)
-
-Le choix de l'action est alors effectué en effectuant un tirage dans la distribution de probabilité résultant d'un softmax sur les Q-valeurs de l'état courant:
-
-![softmax](Softmax.png)
-
-Dans un premier temps, utilisez les paramètres : ```alpha=0.4```, ```beta=4```, ```gamma=0.95```.
-
-Dans notre cas particulier, les actions sont continues, prennent un temps indéfini. Faire des mises à jour à chaque pas de temps n'a pas beaucoup de sens : en 10 millisecondes, l'état sensoriel risque de peu changer, et le signal de valeur risque de se diluer très vite, à moins de prendre un ```gamma``` très très proche de 1. On pourrait ne faire des mises à jour de Q-Learning que lorsque l'état change, ou qu'un signal de récompense arrive, mais dans ce cas là, on pourrait rester indéfiniment coincé dans un état si l'action choisie ne permet pas d'en sortir. Pour contourner ces problèmes, on va ajouter une limite de temps (*timeout*) maximale de 2 secondes.
-
-Il vous est donc demandé de faire fonctionner l'algorithme de la manière suivante :
-* faire une mise à jour de Q(s,a) lorsque l'état vient de changer, lorsqu'on a fait un choix à la boucle précédente, ou lorsque la récompense est non-nulle.
-* choisir une nouvelle action lorsque l'état vient de changer, lorsque la récompense est non-nulle ou lorsqu'il n'y a pas eu de changement de choix depuis 2 secondes.
-
-4. Pour caracterister le comportement de ce Q-Learning, sauvegardez les positions du robot toutes les secondes pour chaque essai d'une expérience de 40 essais, ainsi que les Q-valeurs obtenues à la fin du 40e essai.
-
-5. Pour estimer l'efficacité de ce Q-Learning, répétez 4 à 10 fois (selon le temps disponible) des expériences de 40 essais successifs, et pendant que ça tourne, passez à l'étape 6.
-
-6. Pendant que ces expériences tournent, utilisez les données obtenues à l'étape 4 pour réaliser un histogramme 2D des positions (discrétisées avec un pas de 50x50 pixels) pour les 10 premier essais, puis les 10 derniers, sous forme de deux fichiers ```histoDebut.csv``` et ```histoFin.csv```, puis autant que possible produire deux représentations visuelles sous formes de *heatmaps* (par exemple en utilisant la fonction ```imshow()``` de ```pyplot```) de ces occupations. Commentez le résultat obtenu.
-
-7. Dans les Q-valeurs sauvegardées à l'étape 4, quelles sont celles des états ```00002``` et ```00072``` ? ```00000``` et ```00070``` ? ```11101``` et ```11171``` ? Ces valeurs, pour chacune des deux stratégies, vous semblent-elles logiques ?
-
-8. Une fois les données de l'étape 5 obtenues :
-* produire une figure représentant les courbes de durée de chaque essai pour les runs réalisés. La commenter.
-* mesurez la médiane et les quartiles de la durée des essais sur les 10 premiers essais de tous les runs cummulés, puis sur les 10 derniers. Observez-vous une amélioration des performances ? Comment cette mesure sur les 10 derniers essais se compare-t-elle à celle réalisée à l'étape 2 ? Le Q-Learning est il meilleur après apprentissage ?
-
-N'oubliez pas de m'envoyer les fichiers de log, votre code de ```strategyGating.py``` et un pdf contenant vos réponses aux questions et vos figures.
+- Ces deux états représente le cas ou il y'a énormement d'obstacles en vu et a priori il utilise la politique du radar ce qui n'est pas logique, mais en réalité ça a certainement du lui servir quand il était au bord de l'entonnoir.
+Q(11101, 0) = -1.255
+Q(11101, 1) = -2.025
+Q(11171, 0) = -0.247
+Q(11171, 1) = -2.395
