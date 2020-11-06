@@ -64,10 +64,16 @@ Au début on obtient les performances cumulées suivantes (trois premiers quarti
 - 63.04927521944046 soit une moyenne de 15.7  
 - 65.91398525238037 soit une moyenne de 16.2  
 - 77.76033812761307 soit une moyenne de 19.25  
+
+
 Je suis assez fiére de ce résultat car il montre bien que au début l'approche est relativement similaire a une approche purement aléatoire.
+
+
 - 59.12012094259262 qui donne une moyenne de 14.75  
 - 62.146416664123535 soit une moyenne de 15.5   
 - 69.33094066381454 donc une moyenne de 17.25  
+
+
 Et donc on constate une amélioration sur les 3 mesures mais également et surtout une baisse significative de la variance.
 A noter également que cet agent se base sur une description de son environnement qui est généralisable on s'attend donc a ce que cet agent s'adapte bien mieux a d'autres environnements. \\
 
