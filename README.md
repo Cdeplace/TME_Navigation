@@ -60,30 +60,30 @@ D'abord le premier constat a faire c'est que le temps de délibération pris par
 - Ensuite, il est a noter que la fonction récompense ne prend pas en compte la fonction objectif, ainsi elle a été défini arbitrairement pour éviter les collisions ce qui est sensé permettre d'atteindre la fin plus rapidement mais en pratique rien ne pénalise un robot qui passerait son temps a simplement explorer en évitant l'entonnoir, heureusement grâce au mécanisme d'exploration du softmax cela ne se produit pas.
 
 **A présent Quid des performances ?**
-Au début on obtient les performances cumulées suivantes : 
-63.04927521944046 soit une moyenne de 15.7
-65.91398525238037 soit une moyenne de 16.2
-77.76033812761307 soit une moyenne de 19.25
+Au début on obtient les performances cumulées suivantes (trois premiers quartiles) : 
+- 63.04927521944046 soit une moyenne de 15.7
+- 65.91398525238037 soit une moyenne de 16.2
+- 77.76033812761307 soit une moyenne de 19.25
 Je suis assez fiére de ce résultat car il montre bien que au début l'approche est relativement similaire a une approche purement aléatoire.
-59.12012094259262 qui donne une moyenne de 14.75
-62.146416664123535 soit une moyenne de 15.5
-69.33094066381454 donc une moyenne de 17.25
+- 59.12012094259262 qui donne une moyenne de 14.75
+- 62.146416664123535 soit une moyenne de 15.5
+- 69.33094066381454 donc une moyenne de 17.25
 Et donc on constate une amélioration sur les 3 mesures mais également et surtout une baisse significative de la variance.
-A noter également que cet agent se base sur une description de son environnement qui est généralisable on s'attend donc a ce que cet agent s'adapte bien mieux a d'autres environnements.
-La courbe en revanche est beaucoup moins expressive, on voit bien que les performances s'améliore globalement a la fin de l'apprentissage mais c'est trés bruité, on note cependant que la remarque qu'on a faite sur la fonction récompense se voit bien expérimentalement dans la mesure ou les "outlier points" de la courbe correspondent a des itérations ou l'agent a fait des tours dans le vide.
+A noter également que cet agent se base sur une description de son environnement qui est généralisable on s'attend donc a ce que cet agent s'adapte bien mieux a d'autres environnements. \\
+La courbe en revanche est beaucoup moins expressive, on voit bien que les performances s'améliore globalement a la fin de l'apprentissage mais c'est trés bruité, on note cependant que la remarque qu'on a faite sur la fonction récompense se voit bien expérimentalement dans la mesure ou les "outlier points" de la courbe correspondent a des itérations ou l'agent a fait des tours dans le vide. \\
 #### Analyse de certaines entrées de la Q-Table
-- 00002 : Pas d'obstacle et objectif en vue 
-Q(00002, Radar) = 0.095
-Q(00002, WallFollowing) = -0.222
-Donc la en pratique ça veut dire que si le robot ne voit pas d'obstacle il se dirige vers la récompense si il la voit.
+- 00002 : Pas d'obstacle et objectif en vue \\
+Q(00002, Radar) = 0.095 \\
+Q(00002, WallFollowing) = -0.222 \\
+Donc la en pratique ça veut dire que si le robot ne voit pas d'obstacle il se dirige vers la récompense si il la voit.\\
 
-- 00072 : Pas de vision sur l'objet
-Q(00072, Radar) = -0.082
-Q(00072, WallFollowing) = 0.055
-Pas vraiment de différence mais a priori le wall following est priorisé car il a certainement du permettre au robot d'éviter les récompense négatives quand il était bloqué dans l'entonnoir.
+- 00072 : Pas de vision sur l'objet \\
+Q(00072, Radar) = -0.082 \\ 
+Q(00072, WallFollowing) = 0.055 \\
+Pas vraiment de différence mais a priori le wall following est priorisé car il a certainement du permettre au robot d'éviter les récompense négatives quand il était bloqué dans l'entonnoir. \\
 
-- Ces deux états représente le cas ou il y'a énormement d'obstacles en vu et a priori il utilise la politique du radar ce qui n'est pas logique, mais en réalité ça a certainement du lui servir quand il était au bord de l'entonnoir.
-Q(11101, 0) = -1.255
-Q(11101, 1) = -2.025
-Q(11171, 0) = -0.247
-Q(11171, 1) = -2.395
+- Ces deux états représente le cas ou il y'a énormement d'obstacles en vu et a priori il utilise la politique du radar ce qui n'est pas logique, mais en réalité ça a certainement du lui servir quand il était au bord de l'entonnoir. \\
+Q(11101, 0) = -1.255 \\
+Q(11101, 1) = -2.025 \\
+Q(11171, 0) = -0.247 \\
+Q(11171, 1) = -2.395 \\
