@@ -61,15 +61,17 @@ D'abord le premier constat a faire c'est que le temps de délibération pris par
 
 **A présent Quid des performances ?**
 Au début on obtient les performances cumulées suivantes (trois premiers quartiles) : 
-- 63.04927521944046 soit une moyenne de 15.7
-- 65.91398525238037 soit une moyenne de 16.2
-- 77.76033812761307 soit une moyenne de 19.25
+- 63.04927521944046 soit une moyenne de 15.7  
+- 65.91398525238037 soit une moyenne de 16.2  
+- 77.76033812761307 soit une moyenne de 19.25  
 Je suis assez fiére de ce résultat car il montre bien que au début l'approche est relativement similaire a une approche purement aléatoire.
-- 59.12012094259262 qui donne une moyenne de 14.75
-- 62.146416664123535 soit une moyenne de 15.5
-- 69.33094066381454 donc une moyenne de 17.25
+- 59.12012094259262 qui donne une moyenne de 14.75  
+- 62.146416664123535 soit une moyenne de 15.5   
+- 69.33094066381454 donc une moyenne de 17.25  
 Et donc on constate une amélioration sur les 3 mesures mais également et surtout une baisse significative de la variance.
 A noter également que cet agent se base sur une description de son environnement qui est généralisable on s'attend donc a ce que cet agent s'adapte bien mieux a d'autres environnements. \\
+
+![Performance](Performance.png)
 La courbe en revanche est beaucoup moins expressive, on voit bien que les performances s'améliore globalement a la fin de l'apprentissage mais c'est trés bruité, on note cependant que la remarque qu'on a faite sur la fonction récompense se voit bien expérimentalement dans la mesure ou les "outlier points" de la courbe correspondent a des itérations ou l'agent a fait des tours dans le vide. \\
 #### Analyse de certaines entrées de la Q-Table
 - 00002 : Pas d'obstacle et objectif en vue \\
